@@ -2128,6 +2128,10 @@ Vector<uint8_t> Image::get_data() const {
 	return data;
 }
 
+uint8_t *Image::get_data_ptr() {
+	return data.ptrw();
+}
+
 Ref<Image> Image::create_empty(int p_width, int p_height, bool p_use_mipmaps, Format p_format) {
 	Ref<Image> image;
 	image.instantiate();
