@@ -125,6 +125,7 @@
 #include "editor/plugins/asset_library_editor_plugin.h"
 #include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/plugins/debugger_editor_plugin.h"
+#include "editor/plugins/dedicated_server_export_plugin.h"
 #include "editor/plugins/editor_preview_plugins.h"
 #include "editor/plugins/editor_resource_conversion_plugin.h"
 #include "editor/plugins/gdextension_export_plugin.h"
@@ -3088,7 +3089,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 }
 
 String EditorNode::adjust_scene_name_casing(const String &root_name) {
-	switch (GLOBAL_GET("editor/scene/scene_naming").operator int()) {
+	switch (GLOBAL_GET("editor/naming/scene_name_casing").operator int()) {
 		case SCENE_NAME_CASING_AUTO:
 			// Use casing of the root node.
 			break;
@@ -3901,7 +3902,7 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 		Ref<SceneState> state = sdata->get_state();
 		state->set_path(lpath);
 		new_scene->set_scene_inherited_state(state);
-		new_scene->set_scene_file_path(lpath);
+		new_scene->set_scene_file_path(String());
 	}
 
 	new_scene->set_scene_instance_state(Ref<SceneState>());
@@ -5440,7 +5441,7 @@ void EditorNode::_scene_tab_input(const Ref<InputEvent> &p_input) {
 				_scene_tab_closed(scene_tabs->get_hovered_tab());
 			}
 		} else {
-			if ((mb->get_button_index() == MouseButton::LEFT && mb->is_double_click()) || (mb->get_button_index() == MouseButton::MIDDLE && mb->is_pressed())) {
+			if (mb->get_button_index() == MouseButton::LEFT && mb->is_double_click()) {
 				_menu_option_confirm(FILE_NEW_SCENE, true);
 			}
 		}
@@ -6112,6 +6113,7 @@ void EditorNode::reload_instances_with_path_in_edited_scenes(const String &p_ins
 						Ref<SceneState> state = current_packed_scene->get_state();
 						state->set_path(current_packed_scene->get_path());
 						instantiated_node->set_scene_inherited_state(state);
+						instantiated_node->set_scene_file_path(String());
 					}
 					editor_data.set_edited_scene_root(instantiated_node);
 					current_edited_scene = instantiated_node;
@@ -6428,7 +6430,7 @@ void EditorNode::_feature_profile_changed() {
 }
 
 void EditorNode::_bind_methods() {
-	GLOBAL_DEF(PropertyInfo(Variant::INT, "editor/scene/scene_naming", PROPERTY_HINT_ENUM, "Auto,PascalCase,snake_case"), SCENE_NAME_CASING_SNAKE_CASE);
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "editor/naming/scene_name_casing", PROPERTY_HINT_ENUM, "Auto,PascalCase,snake_case"), SCENE_NAME_CASING_SNAKE_CASE);
 	ClassDB::bind_method("edit_current", &EditorNode::edit_current);
 	ClassDB::bind_method("edit_node", &EditorNode::edit_node);
 
@@ -7877,6 +7879,11 @@ EditorNode::EditorNode() {
 	gdextension_export_plugin.instantiate();
 
 	EditorExport::get_singleton()->add_export_plugin(gdextension_export_plugin);
+
+	Ref<DedicatedServerExportPlugin> dedicated_server_export_plugin;
+	dedicated_server_export_plugin.instantiate();
+
+	EditorExport::get_singleton()->add_export_plugin(dedicated_server_export_plugin);
 
 	Ref<PackedSceneEditorTranslationParserPlugin> packed_scene_translation_parser_plugin;
 	packed_scene_translation_parser_plugin.instantiate();

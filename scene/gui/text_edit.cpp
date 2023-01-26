@@ -3544,6 +3544,19 @@ void TextEdit::insert_text_at_caret(const String &p_text, int p_caret) {
 
 		adjust_carets_after_edit(i, new_line, new_column, from_line, from_col);
 	}
+
+	if (!ime_text.is_empty()) {
+		for (int i = 0; i < carets.size(); i++) {
+			String t;
+			if (get_caret_column(i) >= 0) {
+				t = text[get_caret_line(i)].substr(0, get_caret_column(i)) + ime_text + text[get_caret_line(i)].substr(get_caret_column(i), text[get_caret_line(i)].length());
+			} else {
+				t = ime_text;
+			}
+			text.invalidate_cache(get_caret_line(i), get_caret_column(i), true, t, structured_text_parser(st_parser, st_args, t));
+		}
+	}
+
 	end_complex_operation();
 	queue_redraw();
 }
@@ -6374,7 +6387,7 @@ void TextEdit::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_tabs"), "set_draw_tabs", "is_drawing_tabs");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_spaces"), "set_draw_spaces", "is_drawing_spaces");
 
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "syntax_highlighter", PROPERTY_HINT_RESOURCE_TYPE, "SyntaxHighlighter", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_DO_NOT_SHARE_ON_DUPLICATE), "set_syntax_highlighter", "get_syntax_highlighter");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "syntax_highlighter", PROPERTY_HINT_RESOURCE_TYPE, "SyntaxHighlighter", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_ALWAYS_DUPLICATE), "set_syntax_highlighter", "get_syntax_highlighter");
 
 	ADD_GROUP("Scroll", "scroll_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "scroll_smooth"), "set_smooth_scroll_enabled", "is_smooth_scroll_enabled");
